@@ -42,17 +42,14 @@ flags.DEFINE_string("dbof_pooling_method", "max",
                     "The pooling method used in the DBoF cluster layer. "
                     "Choices are 'average' and 'max'.")
 
-# flags.DEFINE_string("video_level_classifier_model", "MoeModel",
-#                     "Some Frame-Level models can be decomposed into a "
-#                     "generalized pooling operation followed by a "
-#                     "classifier layer")
-flags.DEFINE_string("video_level_classifier_model", "LogisticModel",
+flags.DEFINE_string("video_level_classifier_model", "MoeModel",
                     "Some Frame-Level models can be decomposed into a "
                     "generalized pooling operation followed by a "
                     "classifier layer")
+
 flags.DEFINE_integer("lstm_cells", 1024, "Number of LSTM cells.")
 # flags.DEFINE_integer("lstm_layers", 2, "Number of LSTM layers.")
-flags.DEFINE_integer("lstm_layers", 4, "Number of LSTM layers.")
+flags.DEFINE_integer("lstm_layers", 2, "Number of LSTM layers.")
 
 # 先计算各层平均像素，再一个FC层
 class FrameLevelLogisticModel(models.BaseModel):
