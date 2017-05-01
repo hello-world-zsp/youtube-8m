@@ -24,6 +24,7 @@ import model_utils as utils
 import tensorflow.contrib.slim as slim
 from tensorflow import flags
 
+# gaile!!
 FLAGS = flags.FLAGS
 flags.DEFINE_integer("iterations", 30,
                      "Number of frames per batch for DBoF.")
