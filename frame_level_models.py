@@ -40,13 +40,20 @@ flags.DEFINE_integer("dbof_hidden_size", 1024,
 flags.DEFINE_string("dbof_pooling_method", "max",
                     "The pooling method used in the DBoF cluster layer. "
                     "Choices are 'average' and 'max'.")
-flags.DEFINE_string("video_level_classifier_model", "MoeModel",
+
+# flags.DEFINE_string("video_level_classifier_model", "MoeModel",
+#                     "Some Frame-Level models can be decomposed into a "
+#                     "generalized pooling operation followed by a "
+#                     "classifier layer")
+flags.DEFINE_string("video_level_classifier_model", "LogisticModel",
                     "Some Frame-Level models can be decomposed into a "
                     "generalized pooling operation followed by a "
                     "classifier layer")
 flags.DEFINE_integer("lstm_cells", 1024, "Number of LSTM cells.")
-flags.DEFINE_integer("lstm_layers", 2, "Number of LSTM layers.")
+# flags.DEFINE_integer("lstm_layers", 2, "Number of LSTM layers.")
+flags.DEFINE_integer("lstm_layers", 4, "Number of LSTM layers.")
 
+# 先计算各层平均像素，再一个FC层
 class FrameLevelLogisticModel(models.BaseModel):
 
   def create_model(self, model_input, vocab_size, num_frames, **unused_params):
@@ -82,6 +89,7 @@ class FrameLevelLogisticModel(models.BaseModel):
         weights_regularizer=slim.l2_regularizer(1e-8))
     return {"predictions": output}
 
+# 对视频特征进行聚类，类似于关键帧提取？
 class DbofModel(models.BaseModel):
   """Creates a Deep Bag of Frames model.
 
@@ -210,9 +218,10 @@ class LstmModel(models.BaseModel):
       A dictionary with a tensor containing the probability predictions of the
       model in the 'predictions' key. The dimensions of the tensor are
       'batch_size' x 'num_classes'.
+      输出是各帧的分类预测结果
     """
-    lstm_size = FLAGS.lstm_cells
-    number_of_layers = FLAGS.lstm_layers
+    lstm_size = FLAGS.lstm_cells            # 1024
+    number_of_layers = FLAGS.lstm_layers    # 2
 
     stacked_lstm = tf.contrib.rnn.MultiRNNCell(
             [
@@ -230,6 +239,7 @@ class LstmModel(models.BaseModel):
     aggregated_model = getattr(video_level_models,
                                FLAGS.video_level_classifier_model)
 
+    # 用LSTM提取视频最后一帧特征，作为该段视频的video-level特征，送入video-level分类器
     return aggregated_model().create_model(
         model_input=state[-1].h,
         vocab_size=vocab_size,
